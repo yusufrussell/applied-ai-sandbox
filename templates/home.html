@@ -7,9 +7,13 @@
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     h1 { margin-bottom: 0.25rem; }
     .meta { color: #666; margin-bottom: 1.5rem; }
-    .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+    .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: flex-start; }
+    .note-content { flex: 1; }
     .note h3 { margin: 0 0 0.5rem; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
+    a.filter-link { display: inline-block; margin-left: 1rem; color: #555; font-size: 0.9rem; }
+    .star-form button { background: none; border: none; font-size: 1.25rem; cursor: pointer; padding: 0.25rem; line-height: 1; }
+    .empty { color: #888; margin-top: 1rem; }
   </style>
 </head>
 <body>
@@ -17,17 +21,34 @@
   <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
   <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
+  {% if filter_starred %}
+    <a class="filter-link" href="{{ url_for('home') }}">Show all notes</a>
+  {% else %}
+    <a class="filter-link" href="{{ url_for('home', filter='starred') }}">Show starred only</a>
+  {% endif %}
 
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
+  <h2 style="margin-top: 2rem;">
+    {% if filter_starred %}Starred notes{% else %}Your notes ({{ notes|length }}){% endif %}
+  </h2>
+
   {% if notes %}
-    {% for note in notes %}
+    {% for idx, note in notes %}
       <div class="note">
-        <h3>{{ note.title }}</h3>
-        <p>{{ note.body }}</p>
+        <div class="note-content">
+          <h3>{{ note.title }}</h3>
+          <p>{{ note.body }}</p>
+        </div>
+        <form class="star-form" method="POST" action="{{ url_for('star_note', idx=idx) }}">
+          <button type="submit" title="Toggle star">{{ '★' if note.get('starred') else '☆' }}</button>
+        </form>
       </div>
     {% endfor %}
   {% else %}
-    <p>No notes yet.</p>
+    {% if filter_starred %}
+      <p class="empty">No starred notes yet. Click ☆ on any note to star it.</p>
+    {% else %}
+      <p class="empty">No notes yet.</p>
+    {% endif %}
   {% endif %}
 </body>
 </html>
